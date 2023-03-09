@@ -1,0 +1,470 @@
+openapi: 3.0.3
+info:
+  title: Discord Chatbot API
+  description: 디스코드 챗봇에게 WAHT app 데이터를 제공해주는 API
+  contact:
+    email: jd@metabon.co
+  version: 1.0.0
+servers:
+  - url: http://localhost:8000
+paths:
+  /ping:
+    get:
+      summary: 서버 확인
+      description: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    example: 'pong'
+  /check:
+    get:
+      tags:
+        - check
+      summary: 사용자의 Discord Chatbot 사용 이력 확인
+      description: ''
+      parameters:
+        - name: id
+          in: query
+          description: DiscordID
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: User exists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    example: 'User checked'
+        '400':
+          description: Invalid request parameter
+          content:
+            application/json:
+              schema:
+                type: string
+                example: KEY_ERROR
+        '401':
+          description: User does not exist.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Need to create user
+        '500':
+          description: Internal Server Error
+    post:
+      tags:
+        - check
+      summary: 사용 이력 없는 경우 사용자 등록, NFT 기록 가져오기
+      description: ''
+      parameters:
+        - name: id
+          in: query
+          description: DiscordID
+          schema:
+            type: string
+          required: true
+      requestBody:
+        description: "Sending user's wallet address"
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                walletAddress:
+                  example: 'wallet_address'
+      responses:
+        '201':
+          description: User created.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Discord User Created!
+        '400':
+          description: Invalid request parameter
+          content:
+            application/json:
+              schema:
+                type: string
+                example: KEY_ERROR
+        '500':
+          description: Internal Server Error
+    patch:
+      tags:
+        - check
+      summary: 사용자의 NFT 기록 업데이트
+      description: ''
+      parameters:
+        - name: id
+          in: query
+          description: DiscordID
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: User updated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Discord User Updated!
+        '400':
+          description: Invalid request parameter
+          content:
+            application/json:
+              schema:
+                type: string
+                example: KEY_ERROR
+        '500':
+          description: Internal Server Error
+  /events/list:
+    get:
+      tags:
+        - event
+      summary: 사용자의 NFT에 따라 참가할 수 있는 이벤트 리스트 불러오기
+      description: ''
+      parameters:
+        - name: id
+          in: query
+          description: DiscordID
+          schema:
+            type: string
+          required: true
+        - name: timestamp
+          in: query
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: List of events for the specified user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/EventsList'
+        '400':
+          description: Invalid request parameter
+          content:
+            application/json:
+              schema:
+                type: string
+                example: KEY_ERROR
+        '404':
+          description: When the user does not own an NFT or when there are no available events to participate in
+          content:
+            application/json:
+              schema:
+                type: string
+                example: KEY_ERROR
+        '500':
+          description: Internal Server Error
+  /events/detail:
+    get:
+      tags:
+        - event
+      summary: 이벤트 상세 정보 불러오기
+      description: ''
+      parameters:
+        - name: eventId
+          in: query
+          schema:
+            type: string
+          required: true
+        - name: id
+          in: query
+          description: DiscordID
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: List of events for the specified user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/EventDetail'
+                  check:
+                    type: boolean
+        '400':
+          description: Invalid request parameter
+          content:
+            application/json:
+              schema:
+                type: string
+                example: KEY_ERROR
+        '404':
+          description: No return data when there are errors to get details of an event
+          content:
+            application/json:
+              schema:
+                type: string
+                example: KEY_ERROR
+        '500':
+          description: Internal Server Error
+  /rsvp/list:
+    get:
+      tags:
+        - rsvp
+      summary: RSVP한 이벤트 리스트 불러오기
+      parameters:
+        - name: id
+          in: query
+          description: DiscordID
+          schema:
+            type: string
+          required: true
+        - name: timestamp
+          in: query
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: List of RSVP'd Event list for the specified user
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RsvpList'
+        '400':
+          description: Invalid request parameter
+          content:
+            application/json:
+              schema:
+                type: string
+                example: KEY_ERROR
+        '500':
+          description: Internal Server Error
+  /rsvp:
+    get:
+      tags:
+        - rsvp
+      summary: QR code 생성
+      description: ''
+      parameters:
+        - name: id
+          in: query
+          description: DiscordID
+          schema:
+            type: string
+          required: true
+        - name: eventId
+          in: query
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response with QR code information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RSVPQRcode'
+        '400':
+          description: Invalid request parameter.
+          content:
+            application/json:
+              schema:
+                type: string
+                example: KEY_ERROR
+        '500':
+          description: Internal Server Error
+    post:
+      tags:
+        - rsvp
+      summary: 이벤트 RSVP
+      description: ''
+      parameters:
+        - name: id
+          in: query
+          description: DiscordID
+          schema:
+            type: string
+          required: true
+        - name: eventId
+          in: query
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Success message after creating RSVP
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    example: posted
+        '400':
+          description: Invalid request parameter
+          content:
+            application/json:
+              schema:
+                type: string
+                example: KEY_ERROR
+        '500':
+          description: Internal Server Error
+    delete:
+      tags:
+        - rsvp
+      summary: RSVP 취소하기
+      description: ''
+      parameters:
+        - name: id
+          in: query
+          description: DiscordID
+          schema:
+            type: string
+          required: true
+        - name: eventId
+          in: query
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Success message after deleting RSVP
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    example: deleted
+        '400':
+          description: Invalid request parameter
+          content:
+            application/json:
+              schema:
+                type: string
+                example: KEY_ERROR
+        '500':
+          description: Internal Server Error
+
+components:
+  schemas:
+    EventsList:
+      type: object
+      properties:
+        host_name:
+          type: string
+          example: host_name
+        event_id:
+          type: string
+          example: '123'
+        event_name:
+          type: string
+          example: event_name
+        start_time:
+          type: string
+          example: '2023-01-01 00:00:00'
+        end_time:
+          type: string
+          example: '2023-01-02 10:00:00'
+        spots_available:
+          type: string
+          example: '10'
+    EventDetail:
+      type: object
+      properties:
+        event_name:
+          type: string
+          example: event_name
+        host_name:
+          type: string
+          example: host_name
+        place:
+          type: string
+          example: place
+        images:
+          type: array
+          items:
+            type: string
+            example: imageurl
+        description:
+          type: string
+          example: description
+        custom_info:
+          type: array
+          items:
+            type: object
+            properties:
+              title:
+                type: string
+                example: custom_info title
+              body:
+                type: string
+                example: custom_info body
+        start_time:
+          type: string
+          example: 2023-01-01 00:00:00
+        end_time:
+          type: string
+          example: 2023-01-02 10:00:00
+    RsvpList:
+      type: object
+      properties:
+        event_id:
+          type: string
+          example: 100
+        event_name:
+          type: string
+          example: event_name
+        start_time:
+          type: string
+          example: 2023-01-01 00:00:00
+        end_time:
+          type: string
+          example: 2023-01-02 10:00:00
+    RSVPQRcode:
+      type: object
+      properties:
+        smartContractAddress:
+          type: string
+          example: smart_contract_address
+        id:
+          type: string
+          description: ID of the event
+          example: '123'
+        walletAddress:
+          type: string
+          description: Wallet address of the user
+          example: wallet_address
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp of when the QR code was generated
+          example: 2023-01-01 01:01:01
