@@ -1,4 +1,6 @@
 # WAHT Discord Chatbot
+The WAHT Discord Chatbot is a project that was developed through an internship at METABON. <br>[Metabon](https://waht.app/) ([VANILLA VOID](https://vanillavoid.com/)) 인턴십을 통해 진행된 프로젝트입니다. 
+
 
 ## About
 This is a WAHT Discord chatbot project developed by Metabon. The chatbot is designed to allow users to check and RSVP for events using Discord, even if they do not use the waht.app application.
